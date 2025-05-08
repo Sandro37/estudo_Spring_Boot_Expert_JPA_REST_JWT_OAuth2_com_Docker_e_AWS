@@ -2,10 +2,16 @@ package com.alessandro.libraryappi.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -16,11 +22,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "livro")
 @Data
 @NoArgsConstructor
+@ToString(exclude = { "autor" })
+@EntityListeners(AuditingEntityListener.class)
 public class Livro {
 
 	@Id
@@ -42,4 +51,12 @@ public class Livro {
 	@ManyToOne
 	@JoinColumn(name = "id_autor")
 	private Autor autor;
+
+	@CreatedDate
+	private LocalDateTime dataCadastro;
+
+	@LastModifiedDate
+	private LocalDateTime dataAtualizacao;
+
+	private UUID idUsuario;
 }

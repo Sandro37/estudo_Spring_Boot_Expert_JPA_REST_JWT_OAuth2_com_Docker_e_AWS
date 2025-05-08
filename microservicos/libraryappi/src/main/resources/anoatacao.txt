@@ -1,0 +1,79 @@
+create table tb_autor(
+  id uuid not null primary key,
+  nome varchar(100) not null,
+  data_nascimento date not null,
+  nacionalidade varchar(50) not null,
+  data_cadastro timestamp,
+  data_atualizacao timestamp,
+  id_usuario uuid
+);
+
+create table livro (
+   id uuid not null primary key,
+   isbn varchar(20) not null unique,
+   titulo varchar(150) not null,
+   data_publicacao date not null,
+   genero varchar(30) not null,
+   preco numeric(18,2),
+   data_cadastro timestamp,
+   data_atualizacao timestamp,
+   id_usuario uuid,
+   id_autor uuid not null references tb_autor(id),
+   constraint chk_genero check (genero in ('FICCAO', 'FANTASIA', 'MISTERIO','ROMANCE', 'BIOGRAFIA', 'CIENCIA') )
+);
+
+
+specification
+
+public List<Autor> buscarAutores(String nome, Status status, LocalDate inicio, LocalDate fim) {
+    Specification<Autor> spec = Specification.where(AutorSpecification.nomeContendo(nome))
+            .and(AutorSpecification.comStatus(status))
+            .and(AutorSpecification.dataNascimentoEntre(inicio, fim));
+
+    return autorRepository.findAll(spec);
+}
+
+public Page<Autor> buscarAutoresComFiltro(
+        String nome,
+        Status status,
+        LocalDate inicio,
+        LocalDate fim,
+        Pageable pageable) {
+
+    Specification<Autor> spec = Specification
+            .where(AutorSpecification.nomeContendo(nome))
+            .and(AutorSpecification.comStatus(status))
+            .and(AutorSpecification.dataNascimentoEntre(inicio, fim));
+
+    return autorRepository.findAll(spec, pageable);
+}
+
+
+public class AutorSpecification {
+
+    public static Specification<Autor> nomeContendo(String nome) {
+        return (root, query, cb) -> {
+            if (nome == null || nome.isEmpty()) return null;
+            return cb.like(cb.lower(root.get("nome")), "%" + nome.toLowerCase() + "%");
+        };
+    }
+
+    public static Specification<Autor> comStatus(Status status) {
+        return (root, query, cb) -> {
+            if (status == null) return null;
+            return cb.equal(root.get("status"), status);
+        };
+    }
+
+    public static Specification<Autor> dataNascimentoEntre(LocalDate inicio, LocalDate fim) {
+        return (root, query, cb) -> {
+            if (inicio == null || fim == null) return null;
+            return cb.between(root.get("dataNascimento"), inicio, fim);
+        };
+    }
+}
+
+public interface AutorRepository extends JpaRepository<Autor, Long>, JpaSpecificationExecutor<Autor> {
+}
+
+
